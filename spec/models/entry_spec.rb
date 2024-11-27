@@ -2,77 +2,77 @@ require 'spec_helper'
 
 module Plutus
   describe Entry do
-    let(:entry) { FactoryGirl.build(:entry) }
+    let(:entry) { FactoryBot.build(:entry) }
     subject { entry }
 
-    it { should_not be_valid }
+    it { is_expected.to be_invalid }
 
     context "with credit and debit" do
-      let(:entry) { FactoryGirl.build(:entry_with_credit_and_debit) }
-      it { should be_valid }
+      let(:entry) { FactoryBot.build(:entry_with_credit_and_debit) }
+      it { is_expected.to be_valid }
       
       it "should require a description" do
         entry.description = nil
-        entry.should_not be_valid
+        expect(entry).to be_invalid
       end
     end
 
     context "with a debit" do
       before {
-        entry.debit_amounts << FactoryGirl.build(:debit_amount, entry: entry)
+        entry.debit_amounts << FactoryBot.build(:debit_amount, entry: entry)
       }
-      it { should_not be_valid }
+      it { is_expected.to be_invalid }
 
       context "with an invalid credit" do
         before {
-          entry.credit_amounts << FactoryGirl.build(:credit_amount, entry: entry, amount: nil)
+          entry.credit_amounts << FactoryBot.build(:credit_amount, entry: entry, amount: nil)
         }
-        it { should_not be_valid }
+        it { is_expected.to be_invalid }
       end
     end
 
     context "with a credit" do
       before {
-        entry.credit_amounts << FactoryGirl.build(:credit_amount, entry: entry)
+        entry.credit_amounts << FactoryBot.build(:credit_amount, entry: entry)
       }
-      it { should_not be_valid }
+      it { is_expected.to be_invalid }
 
       context "with an invalid debit" do
         before {
-          entry.debit_amounts << FactoryGirl.build(:debit_amount, entry: entry, amount: nil)
+          entry.debit_amounts << FactoryBot.build(:debit_amount, entry: entry, amount: nil)
         }
-        it { should_not be_valid }
+        it { is_expected.to be_invalid }
       end
     end
 
     it "should require the debit and credit amounts to cancel" do
-      entry.credit_amounts << FactoryGirl.build(:credit_amount, :amount => 100, :entry => entry)
-      entry.debit_amounts << FactoryGirl.build(:debit_amount, :amount => 200, :entry => entry)
-      entry.should_not be_valid
-      entry.errors['base'].should == ["The credit and debit amounts are not equal"]
+      entry.credit_amounts << FactoryBot.build(:credit_amount, :amount => 100, :entry => entry)
+      entry.debit_amounts << FactoryBot.build(:debit_amount, :amount => 200, :entry => entry)
+      expect(entry).to be_invalid
+      expect(entry.errors['base']).to eq(["The credit and debit amounts are not equal"])
     end
 
     it "should require the debit and credit amounts to cancel even with fractions" do
-      entry = FactoryGirl.build(:entry)
-      entry.credit_amounts << FactoryGirl.build(:credit_amount, :amount => 100.1, :entry => entry)
-      entry.debit_amounts << FactoryGirl.build(:debit_amount, :amount => 100.2, :entry => entry)
-      entry.should_not be_valid
-      entry.errors['base'].should == ["The credit and debit amounts are not equal"]
+      entry = FactoryBot.build(:entry)
+      entry.credit_amounts << FactoryBot.build(:credit_amount, :amount => 100.1, :entry => entry)
+      entry.debit_amounts << FactoryBot.build(:debit_amount, :amount => 100.2, :entry => entry)
+      expect(entry).to be_invalid
+      expect(entry.errors['base']).to eq(["The credit and debit amounts are not equal"])
     end
 
     it "should have a polymorphic commercial document associations" do
-      mock_document = FactoryGirl.create(:asset) # one would never do this, but it allows us to not require a migration for the test
-      entry = FactoryGirl.build(:entry_with_credit_and_debit, commercial_document: mock_document)
+      mock_document = FactoryBot.create(:asset) # one would never do this, but it allows us to not require a migration for the test
+      entry = FactoryBot.build(:entry_with_credit_and_debit, commercial_document: mock_document)
       entry.save!
       saved_entry = Entry.find(entry.id)
-      saved_entry.commercial_document.should == mock_document
+      expect(saved_entry.commercial_document).to eq(mock_document)
     end
 
     it "should allow building an entry and credit and debits with a hash" do
-      FactoryGirl.create(:asset, name: "Accounts Receivable")
-      FactoryGirl.create(:revenue, name: "Sales Revenue")
-      FactoryGirl.create(:liability, name: "Sales Tax Payable")
-      mock_document = FactoryGirl.create(:asset)
+      FactoryBot.create(:asset, name: "Accounts Receivable")
+      FactoryBot.create(:revenue, name: "Sales Revenue")
+      FactoryBot.create(:liability, name: "Sales Tax Payable")
+      mock_document = FactoryBot.create(:asset)
       entry = Entry.build(
         description: "Sold some widgets",
         commercial_document: mock_document,
@@ -84,7 +84,7 @@ module Plutus
       entry.save!
 
       saved_entry = Entry.find(entry.id)
-      saved_entry.commercial_document.should == mock_document
+      expect(saved_entry.commercial_document).to eq(mock_document)
     end
 
   end
